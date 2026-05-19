@@ -5,7 +5,7 @@ function Login({ setUser, setIsRegister }) {
   const [password, setPassword] = useState("");
 
   const handleLogin = async (e) => {
-    e.preventDefault(); // ✅ prevent reload
+    e.preventDefault();
 
     if (!username.trim() || !password.trim()) return;
 
@@ -54,7 +54,6 @@ function Login({ setUser, setIsRegister }) {
           Login
         </button>
 
-        {/* 🔁 Switch to Register */}
         <p style={styles.switchText}>
           Don’t have an account?{" "}
           <span
@@ -69,7 +68,6 @@ function Login({ setUser, setIsRegister }) {
   );
 }
 
-// 🎨 SAME STYLE SYSTEM AS REGISTER
 const styles = {
   container: {
     height: "100vh",

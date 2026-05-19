@@ -1,11 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import { socket } from "../socket";
-import "./Chat.css"; // 👈 required for scrollbar hiding
+import "./Chat.css";
 
 function Chat({ user, receiver }) {
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
+
   const bottomRef = useRef(null);
+
+  const lastMessageRef = useRef("");
+  const lastSendTimeRef = useRef(0);
 
   // 🔄 Load messages + socket setup
   useEffect(() => {
@@ -16,8 +20,12 @@ function Chat({ user, receiver }) {
         const exists = prev.some(
           (msg) =>
             msg.sender === data.sender &&
+            msg.receiver === data.receiver &&
             msg.message === data.message &&
-            msg.receiver === data.receiver
+            Math.abs(
+              new Date(msg.timestamp || 0) -
+                new Date(data.timestamp || 0)
+            ) < 2000
         );
 
         return exists ? prev : [...prev, data];
@@ -30,7 +38,6 @@ function Chat({ user, receiver }) {
       alert(err.message);
     });
 
-    // ✅ fetch old messages
     fetch(`http://localhost:5000/api/chat/${user}/${receiver}`)
       .then((res) => res.json())
       .then((data) => setMessages(data));
@@ -41,27 +48,46 @@ function Chat({ user, receiver }) {
     };
   }, [user, receiver]);
 
-  // ✅ Auto scroll
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    bottomRef.current?.scrollIntoView({
+      behavior: "smooth",
+    });
   }, [messages]);
 
-  // 🚀 Send message
   const sendMessage = () => {
     if (!message.trim()) return;
+
+    const now = Date.now();
+
+    if (now - lastSendTimeRef.current < 2000) {
+      alert("Please wait before sending another message.");
+      return;
+    }
+
+    if (lastMessageRef.current === message.trim()) {
+      alert("Duplicate message blocked.");
+      return;
+    }
 
     const newMsg = {
       sender: user,
       receiver,
-      message,
+      message: message.trim(),
+      timestamp: new Date().toISOString(),
     };
 
-    // ✅ Instant UI update
     setMessages((prev) => [...prev, newMsg]);
 
     socket.emit("send_message", newMsg);
 
+    lastMessageRef.current = message.trim();
+    lastSendTimeRef.current = now;
+
     setMessage("");
+
+    setTimeout(() => {
+      lastMessageRef.current = "";
+    }, 5000);
   };
 
   return (
@@ -73,7 +99,9 @@ function Chat({ user, receiver }) {
         </div>
 
         <div>
-          <div style={styles.username}>{receiver.toUpperCase()}</div>
+          <div style={styles.username}>
+            {receiver.toUpperCase()}
+          </div>
         </div>
       </div>
 
@@ -85,7 +113,9 @@ function Chat({ user, receiver }) {
             style={{
               display: "flex",
               justifyContent:
-                msg.sender === user ? "flex-end" : "flex-start",
+                msg.sender === user
+                  ? "flex-end"
+                  : "flex-start",
               marginBottom: "8px",
             }}
           >
@@ -98,8 +128,12 @@ function Chat({ user, receiver }) {
                   msg.sender === user
                     ? "linear-gradient(135deg, #00c6ff, #0072ff)"
                     : "#f1f0f0",
-                color: msg.sender === user ? "white" : "black",
-                boxShadow: "0 2px 5px rgba(0,0,0,0.1)",
+                color:
+                  msg.sender === user
+                    ? "white"
+                    : "black",
+                boxShadow:
+                  "0 2px 5px rgba(0,0,0,0.1)",
                 wordBreak: "break-word",
               }}
             >
@@ -117,7 +151,7 @@ function Chat({ user, receiver }) {
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           onKeyDown={(e) => {
-            if (e.key === "Enter" && message.trim()) {
+            if (e.key === "Enter") {
               sendMessage();
             }
           }}

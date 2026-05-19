@@ -8,7 +8,6 @@ function App() {
   const [receiver, setReceiver] = useState("");
   const [isRegister, setIsRegister] = useState(false);
 
-  // 🔐 AUTH SCREEN
   if (!user) {
     return isRegister ? (
       <Register setIsRegister={setIsRegister} />
@@ -17,7 +16,6 @@ function App() {
     );
   }
 
-  // 💬 CHAT SCREEN
   return (
     <div style={styles.container}>
       <div style={styles.card}>
@@ -46,7 +44,6 @@ function App() {
   );
 }
 
-// 🎨 GLOBAL APP STYLE (same theme everywhere)
 const styles = {
   container: {
     height: "100vh",

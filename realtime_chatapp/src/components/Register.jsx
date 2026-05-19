@@ -55,7 +55,6 @@ function Register({ setIsRegister }) {
           Register
         </button>
 
-        {/* 🔁 Switch to Login */}
         <p style={styles.switchText}>
           Already have an account?{" "}
           <span
@@ -70,7 +69,6 @@ function Register({ setIsRegister }) {
   );
 }
 
-// 🎨 SAME STYLE SYSTEM AS LOGIN
 const styles = {
   container: {
     height: "100vh",
